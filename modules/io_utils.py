@@ -1,7 +1,7 @@
 import pandas as pd
-from .config import DETECTIONS_CSV
+from config import DETECTIONS_CSV
 
-def read_detections():
+def read_detections(path=None):
     path = path or DETECTIONS_CSV
     df = pd.read_csv(path, parse_dates=['timestamp'])
     # required columns: image_path,timestamp,species,confidence,latitude,longitude,bbox (bbox optional)

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from .projection import lonlat_to_xy
 from .io_utils import safe_save
-from .config import LINK_MAX_DIST_M, LINK_MAX_DT_S
+from config import LINK_MAX_DIST_M, LINK_MAX_DT_S
 
 def link_tracks(df):
     df = df.sort_values("timestamp").reset_index(drop=True).copy()

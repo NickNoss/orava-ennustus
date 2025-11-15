@@ -1,5 +1,5 @@
 import pandas as pd
-from .config import PRED_HORIZON_S
+from config import PRED_HORIZON_S
 from .io_utils import safe_save
 from .projection import xy_to_lonlat
 
