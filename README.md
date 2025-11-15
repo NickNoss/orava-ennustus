@@ -188,3 +188,6 @@ open outputs/map.html
 Ohjelma linkittää eläinhavainnot liikeradoiksi, laskee piirteitä, ennustaa tulevaa liikettä ja näyttää kaiken kartalla.
 
 
+## Update 15/11/2025
+
+Lisätty kuvasetti ja liittyvä predictions.csv testausta varten kansioon "data"
