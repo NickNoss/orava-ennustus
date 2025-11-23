@@ -1,22 +1,318 @@
 <!DOCTYPE html>
-<html>
+<html lang="fi">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <title>Orava-ennustus</title>
+
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-color: #111;
+            --accent: #2f8fdd;
+            --input-bg: #fff;
+            --btn-bg: #2f8fdd;
+            --btn-hover: #267bbf;
+            --loader-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body.dark {
+            --bg-color: #121212;
+            --card-bg: rgba(30, 30, 30, 0.85);
+            --text-color: #eee;
+            --accent: #4fc3f7;
+            --input-bg: #1f1f1f;
+            --btn-bg: #4fc3f7;
+            --btn-hover: #39a1d9;
+            --loader-bg: rgba(0, 0, 0, 0.95);
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 50px 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            opacity: 0;
+            margin: 0 0 20px 0;
+            white-space: nowrap;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(40px);
+            transition: background 0.3s;
+        }
+
+        .field {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            position: absolute;
+            top: 14px;
+            left: 8px;
+            font-size: 14px;
+            color: #777;
+            pointer-events: none;
+            transition: 0.2s ease;
+        }
+
+        .field input[type="file"] {
+            width: 100%;
+            padding: 30px 8px 10px 8px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .field input:focus+label,
+        .field input:not(:placeholder-shown)+label {
+            top: 2px;
+            font-size: 11px;
+            color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.3s;
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+        }
+
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: var(--loader-bg);
+            opacity: 0;
+            z-index: 999;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 8px solid #ccc;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #result-frame {
+            width: 100%;
+            height: 650px;
+            border: none;
+            margin-top: 40px;
+            opacity: 0;
+            display: none;
+            transition: opacity 0.5s;
+        }
+
+        #dark-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        #dark-toggle:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+    </style>
 </head>
 
 <body>
-    <h2>Lataa kuvat ja detections.csv</h2>
-    <form method="POST" action="/run" enctype="multipart/form-data">
-        <label>Kuvat (zip tai useita kuvia):</label><br>
-        <input type="file" name="images" multiple><br><br>
 
-        <label>Detections CSV:</label><br>
-        <input type="file" name="csv_file" required><br><br>
+    <!-- Dark mode toggle - suoraan SVG -->
+    <div id="dark-toggle"
+        style="position:fixed; top:20px; right:20px; width:30px; height:30px; cursor:pointer; z-index:1000;">
+        <!-- Oletuksena kuu -->
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+        </svg>
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor" style="display:none;">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+        </svg>
+    </div>
 
-        <button type="submit">Suorita ennustus</button>
-    </form>
+
+
+
+    <div class="container">
+        <h1 id="title">Orava-ennustus</h1>
+
+        <div class="form-card">
+            <form id="uploadForm" method="POST" action="/run" enctype="multipart/form-data" target="hiddenFrame">
+
+                <div class="field">
+                    <input type="file" id="filesInput" name="files" multiple webkitdirectory directory
+                        accept=".zip,image/*">
+                    <label>Lataa useita kuvia, ZIP-tiedosto tai koko kansio</label>
+                </div>
+
+
+                <!-- CSV -->
+                <div class="field">
+                    <input type="file" name="csv_file" required>
+                    <label>Lataa Detections CSV</label>
+                </div>
+
+                <button type="submit" id="submitBtn">Suorita</button>
+            </form>
+        </div>
+
+        <iframe name="hiddenFrame" style="display:none;"></iframe>
+        <iframe id="result-frame"></iframe>
+    </div>
+
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p id="loader-text" style="font-size:18px; font-weight:600;">Suoritetaan ennustetta...</p>
+    </div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // ------------------- TYPEWRITER TITLE -------------------
+        const title = document.getElementById("title");
+        const text = "Orava-ennustus";
+        let index = 0;
+        function typeWriter() {
+            if (index < text.length) {
+                title.textContent = text.substring(0, index + 1);
+                index++;
+                setTimeout(typeWriter, 60);
+            }
+        }
+        typeWriter();
+
+        // ------------------- FORM ANIMATIONS -------------------
+        gsap.to(".form-card", { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power3.out" });
+        gsap.from("input[type='file']", {
+            scrollTrigger: { trigger: ".form-card", start: "top 80%" },
+            opacity: 0,
+            x: -20,
+            stagger: 0.2,
+            duration: 0.8,
+            ease: "power2.out"
+        });
+
+        // ------------------- BUTTON MICRO-INTERACTIONS -------------------
+        const btn = document.getElementById("submitBtn");
+        btn.addEventListener("mouseenter", () => { gsap.to(btn, { scale: 1.04, duration: 0.15, ease: "back.out(2)" }); });
+        btn.addEventListener("mouseleave", () => { gsap.to(btn, { scale: 1.0, duration: 0.15 }); });
+
+        // ------------------- LOADER -------------------
+        const loader = document.getElementById("loader-overlay");
+        document.getElementById("uploadForm").addEventListener("submit", () => {
+            loader.style.display = "flex";
+            gsap.to(loader, { opacity: 1, duration: 0.4 });
+            gsap.to("#loader-text", { opacity: 0.4, duration: 0.8, repeat: -1, yoyo: true });
+        });
+
+        // ------------------- RESULT IFRAME -------------------
+        const hiddenFrame = document.getElementsByName("hiddenFrame")[0];
+        const resultFrame = document.getElementById("result-frame");
+        hiddenFrame.onload = function () {
+            const doc = hiddenFrame.contentDocument || hiddenFrame.contentWindow.document;
+            const html = doc.documentElement.innerHTML;
+            const frameDoc = resultFrame.contentDocument || resultFrame.contentWindow.document;
+            frameDoc.open();
+            frameDoc.write(html);
+            frameDoc.close();
+            gsap.to(loader, { opacity: 0, duration: 0.4, onComplete: () => { loader.style.display = "none"; } });
+            resultFrame.style.display = "block";
+            gsap.to(resultFrame, { opacity: 1, duration: 0.8, ease: "power2.out" });
+        };
+
+        // ------------------- DARK MODE TOGGLE -------------------
+        const darkToggle = document.getElementById("dark-toggle");
+
+        const moonIcon = document.getElementById("moon-icon");
+        const sunIcon = document.getElementById("sun-icon");
+
+        darkToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+
+            if (document.body.classList.contains("dark")) {
+                moonIcon.style.display = "none";
+                sunIcon.style.display = "block";
+            } else {
+                moonIcon.style.display = "block";
+                sunIcon.style.display = "none";
+            }
+        });
+
+        // Säilytä tila sivulatauksissa
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark");
+            moonIcon.style.display = "none";
+            sunIcon.style.display = "block";
+        } else {
+            moonIcon.style.display = "block";
+            sunIcon.style.display = "none";
+        }
+    </script>
 </body>
 
 </html>

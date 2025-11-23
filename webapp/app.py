@@ -17,43 +17,41 @@ def index():
 
 @app.route("/run", methods=["POST"])
 def run_algorithm():
-
-    # Tyhjennä data/images ja data/detections.csv
+    # Tyhjennä vanhat kuvat
     if os.path.exists(IMAGES_DIR):
         shutil.rmtree(IMAGES_DIR)
     os.makedirs(IMAGES_DIR, exist_ok=True)
 
-    # --- 1) Käsittele kuvat ---
-    images = request.files.getlist("images")
-    if len(images) == 1 and images[0].filename.lower().endswith(".zip"):
-        zip_path = os.path.join(DATA_DIR, "images.zip")
-        images[0].save(zip_path)
-        with zipfile.ZipFile(zip_path, "r") as z:
-            z.extractall(IMAGES_DIR)
-    else:
-        for img in images:
-            if img.filename:
-                img.save(os.path.join(IMAGES_DIR, img.filename))
+    # Hae kaikki lähetetyt tiedostot
+    uploaded_files = request.files.getlist("files")
 
-    # --- 2) Käsittele CSV ---
+    for file in uploaded_files:
+        if file.filename.lower().endswith(".zip"):
+            zip_path = os.path.join(DATA_DIR, "temp.zip")
+            file.save(zip_path)
+            with zipfile.ZipFile(zip_path, "r") as z:
+                z.extractall(IMAGES_DIR)
+        elif file.filename:
+            # Tallenna suoraan images-kansioon
+            file.save(os.path.join(IMAGES_DIR, file.filename))
+
+    # Hae CSV
     csv_file = request.files["csv_file"]
     csv_file.save(os.path.join(DATA_DIR, "detections.csv"))
 
-    # --- 3) Aja main.py ---
+    # Aja algoritmi
     try:
-        subprocess.run(
-            ["python", os.path.join(BASE_DIR, "main.py")],
-            cwd=BASE_DIR,
-            check=True
-        )
+        subprocess.run(["python", os.path.join(BASE_DIR, "main.py")], cwd=BASE_DIR, check=True)
     except Exception as e:
         return f"Algoritmin ajo epäonnistui: {e}", 500
 
-    # --- 4) Palauta HTML-tulos ---
+    # Palauta HTML
     if os.path.exists(OUTPUT_HTML):
         return send_file(OUTPUT_HTML)
     else:
         return "map.html ei löytynyt", 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
