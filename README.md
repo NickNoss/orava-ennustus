@@ -191,3 +191,15 @@ Ohjelma linkittää eläinhavainnot liikeradoiksi, laskee piirteitä, ennustaa t
 ## Update 15/11/2025
 
 Lisätty kuvasetti ja liittyvä predictions.csv testausta varten kansioon "data"
+
+## Update 21/11/2025
+
+Lisätty web-sovellus toiminnallisuus.
+
+## Kuinka ajaa web-sovellus
+
+1. Aja pääohjelma:
+
+```bash
+python app.py
+```
