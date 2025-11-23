@@ -191,3 +191,19 @@ Ohjelma linkittää eläinhavainnot liikeradoiksi, laskee piirteitä, ennustaa t
 ## Update 15/11/2025
 
 Lisätty kuvasetti ja liittyvä predictions.csv testausta varten kansioon "data"
+
+## Update 21/11/2025
+
+ 1. Lisätty web-sovellus toiminnallisuus.
+ 2. Sovelluksen visuaalisuutta ja toiminnallisuutta parannettu käyttäen GSAP-kirjastoa.
+
+## Kuinka ajaa web-sovellus
+
+1. Aja pääohjelma:
+
+```bash
+python app.py
+```
+2. Upota haluamasi kuvat muodossa: zip-tiedosto, kansio tai useammat kuvat.
+3. Upota detections.csv -tiedosto.
+4. Aja ohjelma.
