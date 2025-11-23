@@ -203,3 +203,6 @@ Lisätty web-sovellus toiminnallisuus.
 ```bash
 python app.py
 ```
+2. Upota haluamasi kuvat muodossa: zip-tiedosto, kansio tai useammat kuvat.
+3. Upota detections.csv -tiedosto.
+4. Aja ohjelma.
