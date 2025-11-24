@@ -199,11 +199,30 @@ Lisätty kuvasetti ja liittyvä predictions.csv testausta varten kansioon "data"
 
 ## Kuinka ajaa web-sovellus
 
-1. Aja pääohjelma:
+1. Siirry webapp-kansioon:
+
+```bash
+cd webapp
+``` 
+2. Aktivoi virtuaaliympäristö:
+
+```bash
+source venv/bin/activate
+```
+3. Asenna virtuaaliympäristö (ensimmäisellä kerralla): 
+
+```bash
+pip install -r requirements.txt
+```
+4. Aja pääohjelma:
 
 ```bash
 python app.py
 ```
-2. Upota haluamasi kuvat muodossa: zip-tiedosto, kansio tai useammat kuvat.
-3. Upota detections.csv -tiedosto.
-4. Aja ohjelma.
+Käynnistyy web-sovellus, yleensä osoitteessa:
+```csharp
+ * Running on http://127.0.0.1:5000
+```
+5. Upota haluamasi kuvat muodossa: zip-tiedosto, kansio tai useammat kuvat.
+6. Upota detections.csv -tiedosto.
+7. Aja ohjelma.
